@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"sync"
+
 	"github.com/snowmerak/renovates/lib/discovery"
 	"github.com/snowmerak/renovates/lib/notifier"
 	"github.com/snowmerak/renovates/lib/renovate"
@@ -36,34 +38,51 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, repo := range repos {
-		fmt.Printf("Running renovate for %s...\n", repo)
-		output, err := cfg.Run(context.Background(), repo)
-		if err != nil {
-			log.Printf("failed to run renovate for %s: %v", repo, err)
-			continue
-		}
-
-		updates := renovate.ParseUpdates(output)
-
-		var notifiers []notifier.Notifier
-		for _, n := range cfg.Notifiers {
-			switch n.Type {
-			case "stdout":
-				notifiers = append(notifiers, notifier.NewStdoutNotifier())
-			case "webhook":
-				notifiers = append(notifiers, notifier.NewWebhookNotifier(n.URL))
-			case "teams":
-				notifiers = append(notifiers, notifier.NewTeamsNotifier(n.URL))
-			case "telegram":
-				notifiers = append(notifiers, notifier.NewTelegramNotifier(n.Token, n.ChatID))
-			}
-		}
-
-		for _, n := range notifiers {
-			if err := n.Notify(context.Background(), repo, updates); err != nil {
-				log.Printf("failed to notify for %s: %v", repo, err)
-			}
-		}
+	concurrency := cfg.Concurrency
+	if concurrency < 1 {
+		concurrency = 1
 	}
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for _, repo := range repos {
+		wg.Add(1)
+		sem <- struct{}{} // Acquire semaphore
+
+		go func(r string) {
+			defer wg.Done()
+			defer func() { <-sem }() // Release semaphore
+
+			fmt.Printf("Running renovate for %s...\n", r)
+			output, err := cfg.Run(context.Background(), r)
+			if err != nil {
+				log.Printf("failed to run renovate for %s: %v", r, err)
+				return
+			}
+
+			updates := renovate.ParseUpdates(output)
+
+			var notifiers []notifier.Notifier
+			for _, n := range cfg.Notifiers {
+				switch n.Type {
+				case "stdout":
+					notifiers = append(notifiers, notifier.NewStdoutNotifier())
+				case "webhook":
+					notifiers = append(notifiers, notifier.NewWebhookNotifier(n.URL))
+				case "teams":
+					notifiers = append(notifiers, notifier.NewTeamsNotifier(n.URL))
+				case "telegram":
+					notifiers = append(notifiers, notifier.NewTelegramNotifier(n.Token, n.ChatID))
+				}
+			}
+
+			for _, n := range notifiers {
+				if err := n.Notify(context.Background(), r, updates); err != nil {
+					log.Printf("failed to notify for %s: %v", r, err)
+				}
+			}
+		}(repo)
+	}
+
+	wg.Wait()
 }

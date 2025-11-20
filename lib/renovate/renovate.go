@@ -34,6 +34,7 @@ type Config struct {
 	DryRun        bool              `toml:"dry_run"`
 	Onboarding    bool              `toml:"onboarding"`
 	RequireConfig string            `toml:"require_config"`
+	Concurrency   int               `toml:"concurrency"`
 	Notifiers     []NotifierConfig  `toml:"notifiers"`
 	Discovery     DiscoveryConfig   `toml:"discovery"`
 	ExtraEnv      map[string]string `toml:"extra_env"`

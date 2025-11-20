@@ -2,6 +2,7 @@ command = "renovate"
 platform = "github"
 token = "your_github_token_here"
 endpoint = "https://api.github.com"
+concurrency = 1
 
 [[notifiers]]
 type = "stdout"
