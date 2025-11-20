@@ -10,15 +10,20 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+type NotifierConfig struct {
+	Type string `toml:"type"`
+	URL  string `toml:"url"`
+}
+
 type Config struct {
-	Command  string            `toml:"command"`
-	Platform string            `toml:"platform"`
-	Token    string            `toml:"token"`
-	Endpoint string            `toml:"endpoint"`
-	LogLevel string            `toml:"log_level"`
-	DryRun   bool              `toml:"dry_run"`
-	Webhook  string            `toml:"webhook"`
-	ExtraEnv map[string]string `toml:"extra_env"`
+	Command   string            `toml:"command"`
+	Platform  string            `toml:"platform"`
+	Token     string            `toml:"token"`
+	Endpoint  string            `toml:"endpoint"`
+	LogLevel  string            `toml:"log_level"`
+	DryRun    bool              `toml:"dry_run"`
+	Notifiers []NotifierConfig  `toml:"notifiers"`
+	ExtraEnv  map[string]string `toml:"extra_env"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -53,9 +58,6 @@ func (c *Config) ToEnv() []string {
 	}
 	if c.DryRun {
 		envs = append(envs, "RENOVATE_DRY_RUN=true")
-	}
-	if c.Webhook != "" {
-		envs = append(envs, fmt.Sprintf("RENOVATE_WEBHOOK=%s", c.Webhook))
 	}
 
 	envs = append(envs, "LOG_FORMAT=json")
