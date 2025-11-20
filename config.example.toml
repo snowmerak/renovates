@@ -12,3 +12,4 @@ type = "stdout"
 
 [extra_env]
 # RENOVATE_AUTODISCOVER = "true"
+# RENOVATE_AUTODISCOVER_FILTER = "your_filter_here"
