@@ -6,9 +6,21 @@ endpoint = "https://api.github.com"
 [[notifiers]]
 type = "stdout"
 
+# Notifier: Generic Webhook
 # [[notifiers]]
 # type = "webhook"
 # url = "https://your-webhook-url.com"
+
+# Notifier: Microsoft Teams (via Power Automate / Incoming Webhook)
+# [[notifiers]]
+# type = "teams"
+# url = "https://your-teams-webhook-url.com"
+
+# Notifier: Telegram Bot
+# [[notifiers]]
+# type = "telegram"
+# token = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+# chat_id = "123456789"
 
 [extra_env]
 # RENOVATE_AUTODISCOVER = "true"
