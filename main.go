@@ -39,6 +39,8 @@ func main() {
 			notifiers = append(notifiers, notifier.NewWebhookNotifier(n.URL))
 		case "teams":
 			notifiers = append(notifiers, notifier.NewTeamsNotifier(n.URL))
+		case "telegram":
+			notifiers = append(notifiers, notifier.NewTelegramNotifier(n.Token, n.ChatID))
 		}
 	}
 
