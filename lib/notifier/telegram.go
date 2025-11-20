@@ -36,10 +36,14 @@ func (n *TelegramNotifier) Notify(ctx context.Context, repo string, updates []re
 	sb.WriteString(fmt.Sprintf("📢 *Renovate Updates for %s*\n\n", repo))
 
 	for _, u := range updates {
-		sb.WriteString(fmt.Sprintf("📦 *%s*\n", u.DepName))
+		sb.WriteString(fmt.Sprintf("📦 *%s*", u.DepName))
+		if u.PackageFile != "" {
+			sb.WriteString(fmt.Sprintf(" in `%s`", u.PackageFile))
+		}
+		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf("   %s → %s", u.CurrentVersion, u.NewVersion))
 		if u.UpdateType != "" {
-			sb.WriteString(fmt.Sprintf(" \\[%s\\]", u.UpdateType))
+			sb.WriteString(fmt.Sprintf(" \\[%s]", u.UpdateType))
 		}
 		sb.WriteString("\n")
 	}
