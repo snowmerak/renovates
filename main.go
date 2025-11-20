@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/snowmerak/renovates/lib/notifier"
 	"github.com/snowmerak/renovates/lib/renovate"
 )
 
@@ -27,6 +28,21 @@ func main() {
 		log.Fatalf("failed to run renovate: %v", err)
 	}
 
-	fmt.Println("Output:")
-	fmt.Println(string(output))
+	message := renovate.ParseUpdates(output)
+
+	var notifiers []notifier.Notifier
+	for _, n := range cfg.Notifiers {
+		switch n.Type {
+		case "stdout":
+			notifiers = append(notifiers, notifier.NewStdoutNotifier())
+		case "webhook":
+			notifiers = append(notifiers, notifier.NewWebhookNotifier(n.URL))
+		}
+	}
+
+	for _, n := range notifiers {
+		if err := n.Notify(context.Background(), repo, message); err != nil {
+			log.Printf("failed to notify: %v", err)
+		}
+	}
 }
