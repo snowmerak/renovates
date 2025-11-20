@@ -7,17 +7,26 @@ import (
 	"strings"
 )
 
-type logEntry struct {
-	Msg            string `json:"msg"`
+type upgrade struct {
 	DepName        string `json:"depName"`
-	NewVersion     string `json:"newVersion"`
 	CurrentVersion string `json:"currentVersion"`
+	NewVersion     string `json:"newVersion"`
 	UpdateType     string `json:"updateType"`
+}
+
+type branchInfo struct {
+	BranchName string    `json:"branchName"`
+	Upgrades   []upgrade `json:"upgrades"`
+}
+
+type logEntry struct {
+	Msg                 string       `json:"msg"`
+	BranchesInformation []branchInfo `json:"branchesInformation"`
 }
 
 func ParseUpdates(output []byte) string {
 	lines := strings.Split(string(output), "\n")
-	updates := make(map[string]logEntry)
+	updates := make(map[string]string)
 
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
@@ -29,8 +38,16 @@ func ParseUpdates(output []byte) string {
 			continue
 		}
 
-		if entry.DepName != "" && entry.NewVersion != "" {
-			updates[entry.DepName] = entry
+		if entry.Msg == "branches info extended" && len(entry.BranchesInformation) > 0 {
+			for _, branch := range entry.BranchesInformation {
+				for _, upgrade := range branch.Upgrades {
+					msg := fmt.Sprintf("%s -> %s", upgrade.CurrentVersion, upgrade.NewVersion)
+					if upgrade.UpdateType != "" {
+						msg += fmt.Sprintf(" (%s)", upgrade.UpdateType)
+					}
+					updates[upgrade.DepName] = msg
+				}
+			}
 		}
 	}
 
@@ -47,12 +64,7 @@ func ParseUpdates(output []byte) string {
 	var sb strings.Builder
 	sb.WriteString("Dependency Updates:\n")
 	for _, k := range keys {
-		u := updates[k]
-		sb.WriteString(fmt.Sprintf("- %s: %s -> %s", u.DepName, u.CurrentVersion, u.NewVersion))
-		if u.UpdateType != "" {
-			sb.WriteString(fmt.Sprintf(" (%s)", u.UpdateType))
-		}
-		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("- %s: %s\n", k, updates[k]))
 	}
 
 	return sb.String()

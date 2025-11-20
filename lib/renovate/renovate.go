@@ -16,14 +16,16 @@ type NotifierConfig struct {
 }
 
 type Config struct {
-	Command   string            `toml:"command"`
-	Platform  string            `toml:"platform"`
-	Token     string            `toml:"token"`
-	Endpoint  string            `toml:"endpoint"`
-	LogLevel  string            `toml:"log_level"`
-	DryRun    bool              `toml:"dry_run"`
-	Notifiers []NotifierConfig  `toml:"notifiers"`
-	ExtraEnv  map[string]string `toml:"extra_env"`
+	Command       string            `toml:"command"`
+	Platform      string            `toml:"platform"`
+	Token         string            `toml:"token"`
+	Endpoint      string            `toml:"endpoint"`
+	LogLevel      string            `toml:"log_level"`
+	DryRun        bool              `toml:"dry_run"`
+	Onboarding    bool              `toml:"onboarding"`
+	RequireConfig string            `toml:"require_config"`
+	Notifiers     []NotifierConfig  `toml:"notifiers"`
+	ExtraEnv      map[string]string `toml:"extra_env"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -58,6 +60,12 @@ func (c *Config) ToEnv() []string {
 	}
 	if c.DryRun {
 		envs = append(envs, "RENOVATE_DRY_RUN=true")
+	}
+
+	envs = append(envs, fmt.Sprintf("RENOVATE_ONBOARDING=%t", c.Onboarding))
+
+	if c.RequireConfig != "" {
+		envs = append(envs, fmt.Sprintf("RENOVATE_REQUIRE_CONFIG=%s", c.RequireConfig))
 	}
 
 	envs = append(envs, "LOG_FORMAT=json")
