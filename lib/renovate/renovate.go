@@ -55,18 +55,12 @@ func (c *Config) ToEnv() []string {
 	if c.Endpoint != "" {
 		envs = append(envs, fmt.Sprintf("RENOVATE_ENDPOINT=%s", c.Endpoint))
 	}
-	if c.LogLevel != "" {
-		envs = append(envs, fmt.Sprintf("LOG_LEVEL=%s", c.LogLevel))
-	}
-	if c.DryRun {
-		envs = append(envs, "RENOVATE_DRY_RUN=true")
-	}
 
-	envs = append(envs, fmt.Sprintf("RENOVATE_ONBOARDING=%t", c.Onboarding))
-
-	if c.RequireConfig != "" {
-		envs = append(envs, fmt.Sprintf("RENOVATE_REQUIRE_CONFIG=%s", c.RequireConfig))
-	}
+	// Enforced options
+	envs = append(envs, "LOG_LEVEL=debug")
+	envs = append(envs, "RENOVATE_DRY_RUN=true")
+	envs = append(envs, "RENOVATE_ONBOARDING=false")
+	envs = append(envs, "RENOVATE_REQUIRE_CONFIG=optional")
 
 	envs = append(envs, "LOG_FORMAT=json")
 
