@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+type UpdateInfo struct {
+	DepName        string `json:"depName"`
+	CurrentVersion string `json:"currentVersion"`
+	NewVersion     string `json:"newVersion"`
+	UpdateType     string `json:"updateType"`
+	PackageFile    string `json:"packageFile"`
+}
+
 type upgrade struct {
 	DepName        string `json:"depName"`
 	CurrentVersion string `json:"currentVersion"`
@@ -42,10 +50,10 @@ type logEntry struct {
 	Config              map[string][]packageFile `json:"config"`
 }
 
-func ParseUpdates(output []byte) string {
+func ParseUpdates(output []byte) []UpdateInfo {
 	lines := strings.Split(string(output), "\n")
 	// Key: DepName + PackageFile + NewVersion
-	updates := make(map[string]string)
+	updatesMap := make(map[string]UpdateInfo)
 
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
@@ -61,14 +69,13 @@ func ParseUpdates(output []byte) string {
 			for _, branch := range entry.BranchesInformation {
 				for _, upgrade := range branch.Upgrades {
 					key := fmt.Sprintf("%s|%s|%s", upgrade.DepName, upgrade.PackageFile, upgrade.NewVersion)
-					msg := fmt.Sprintf("%s: %s -> %s", upgrade.DepName, upgrade.CurrentVersion, upgrade.NewVersion)
-					if upgrade.PackageFile != "" {
-						msg += fmt.Sprintf(" (%s)", upgrade.PackageFile)
+					updatesMap[key] = UpdateInfo{
+						DepName:        upgrade.DepName,
+						CurrentVersion: upgrade.CurrentVersion,
+						NewVersion:     upgrade.NewVersion,
+						UpdateType:     upgrade.UpdateType,
+						PackageFile:    upgrade.PackageFile,
 					}
-					if upgrade.UpdateType != "" {
-						msg += fmt.Sprintf(" [%s]", upgrade.UpdateType)
-					}
-					updates[key] = msg
 				}
 			}
 		} else if entry.Msg == "packageFiles with updates" && len(entry.Config) > 0 {
@@ -77,14 +84,13 @@ func ParseUpdates(output []byte) string {
 					for _, dep := range pf.Deps {
 						for _, update := range dep.Updates {
 							key := fmt.Sprintf("%s|%s|%s", dep.DepName, pf.PackageFile, update.NewVersion)
-							msg := fmt.Sprintf("%s: %s -> %s", dep.DepName, dep.CurrentVersion, update.NewVersion)
-							if pf.PackageFile != "" {
-								msg += fmt.Sprintf(" (%s)", pf.PackageFile)
+							updatesMap[key] = UpdateInfo{
+								DepName:        dep.DepName,
+								CurrentVersion: dep.CurrentVersion,
+								NewVersion:     update.NewVersion,
+								UpdateType:     update.UpdateType,
+								PackageFile:    pf.PackageFile,
 							}
-							if update.UpdateType != "" {
-								msg += fmt.Sprintf(" [%s]", update.UpdateType)
-							}
-							updates[key] = msg
 						}
 					}
 				}
@@ -92,21 +98,17 @@ func ParseUpdates(output []byte) string {
 		}
 	}
 
-	if len(updates) == 0 {
-		return "No updates needed."
+	var updates []UpdateInfo
+	for _, u := range updatesMap {
+		updates = append(updates, u)
 	}
 
-	var keys []string
-	for k := range updates {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+	sort.Slice(updates, func(i, j int) bool {
+		if updates[i].DepName != updates[j].DepName {
+			return updates[i].DepName < updates[j].DepName
+		}
+		return updates[i].NewVersion < updates[j].NewVersion
+	})
 
-	var sb strings.Builder
-	sb.WriteString("Dependency Updates:\n")
-	for _, k := range keys {
-		sb.WriteString(fmt.Sprintf("- %s\n", updates[k]))
-	}
-
-	return sb.String()
+	return updates
 }

@@ -1,7 +1,11 @@
 package notifier
 
-import "context"
+import (
+	"context"
+
+	"github.com/snowmerak/renovates/lib/renovate"
+)
 
 type Notifier interface {
-	Notify(ctx context.Context, repo string, result string) error
+	Notify(ctx context.Context, repo string, updates []renovate.UpdateInfo) error
 }

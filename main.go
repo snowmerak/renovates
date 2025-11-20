@@ -28,7 +28,7 @@ func main() {
 		log.Fatalf("failed to run renovate: %v", err)
 	}
 
-	message := renovate.ParseUpdates(output)
+	updates := renovate.ParseUpdates(output)
 
 	var notifiers []notifier.Notifier
 	for _, n := range cfg.Notifiers {
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	for _, n := range notifiers {
-		if err := n.Notify(context.Background(), repo, message); err != nil {
+		if err := n.Notify(context.Background(), repo, updates); err != nil {
 			log.Printf("failed to notify: %v", err)
 		}
 	}

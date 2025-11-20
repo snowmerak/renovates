@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/snowmerak/renovates/lib/renovate"
 )
 
 type WebhookNotifier struct {
@@ -17,18 +19,18 @@ func NewWebhookNotifier(url string) *WebhookNotifier {
 }
 
 type webhookPayload struct {
-	Repo   string `json:"repo"`
-	Result string `json:"result"`
+	Repo    string                `json:"repo"`
+	Updates []renovate.UpdateInfo `json:"updates"`
 }
 
-func (n *WebhookNotifier) Notify(ctx context.Context, repo string, result string) error {
+func (n *WebhookNotifier) Notify(ctx context.Context, repo string, updates []renovate.UpdateInfo) error {
 	if n.URL == "" {
 		return nil
 	}
 
 	payload := webhookPayload{
-		Repo:   repo,
-		Result: result,
+		Repo:    repo,
+		Updates: updates,
 	}
 
 	data, err := json.Marshal(payload)
