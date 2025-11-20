@@ -113,6 +113,22 @@ type = "webhook"
 url = "YOUR_WEBHOOK_URL"
 ```
 
+**Payload Structure:**
+```json
+{
+  "repo": "owner/repository-name",
+  "updates": [
+    {
+      "depName": "github.com/pkg/errors",
+      "currentVersion": "v0.9.0",
+      "newVersion": "v0.9.1",
+      "updateType": "patch",
+      "packageFile": "go.mod"
+    }
+  ]
+}
+```
+
 ## License
 
 AGPL-3.0
