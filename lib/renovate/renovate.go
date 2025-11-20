@@ -17,6 +17,14 @@ type NotifierConfig struct {
 	ChatID string `toml:"chat_id"`
 }
 
+type DiscoveryConfig struct {
+	Enabled  bool     `toml:"enabled"`
+	Owner    string   `toml:"owner"`
+	Topics   []string `toml:"topics"`
+	Includes []string `toml:"includes"`
+	Excludes []string `toml:"excludes"`
+}
+
 type Config struct {
 	Command       string            `toml:"command"`
 	Platform      string            `toml:"platform"`
@@ -27,6 +35,7 @@ type Config struct {
 	Onboarding    bool              `toml:"onboarding"`
 	RequireConfig string            `toml:"require_config"`
 	Notifiers     []NotifierConfig  `toml:"notifiers"`
+	Discovery     DiscoveryConfig   `toml:"discovery"`
 	ExtraEnv      map[string]string `toml:"extra_env"`
 }
 

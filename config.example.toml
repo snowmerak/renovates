@@ -22,6 +22,13 @@ type = "stdout"
 # token = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
 # chat_id = "123456789"
 
+[discovery]
+enabled = false
+# owner = "snowmerak" # User or Org name
+# topics = ["renovate-enabled"]
+# includes = ["^service-.*"]
+# excludes = [".*-deprecated$"]
+
 [extra_env]
 # RENOVATE_AUTODISCOVER = "true"
 # RENOVATE_AUTODISCOVER_FILTER = "your_filter_here"
