@@ -11,8 +11,10 @@ import (
 )
 
 type NotifierConfig struct {
-	Type string `toml:"type"`
-	URL  string `toml:"url"`
+	Type   string `toml:"type"`
+	URL    string `toml:"url"`
+	Token  string `toml:"token"`
+	ChatID string `toml:"chat_id"`
 }
 
 type Config struct {
