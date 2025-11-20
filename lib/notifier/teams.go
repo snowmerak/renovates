@@ -79,7 +79,7 @@ func (n *TeamsNotifier) Notify(ctx context.Context, repo string, updates []renov
 	cardBody := []interface{}{
 		map[string]interface{}{
 			"type":   "TextBlock",
-			"text":   "📢 Renovate Updates",
+			"text":   "📢 Dependency Updates",
 			"weight": "Bolder",
 			"size":   "Large",
 			"color":  "Accent",

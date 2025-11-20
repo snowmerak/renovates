@@ -33,7 +33,7 @@ func (n *TelegramNotifier) Notify(ctx context.Context, repo string, updates []re
 	}
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("📢 *Renovate Updates for %s*\n\n", repo))
+	sb.WriteString(fmt.Sprintf("📢 *Dependency Updates for %s*\n\n", repo))
 
 	for _, u := range updates {
 		sb.WriteString(fmt.Sprintf("📦 *%s*", u.DepName))
