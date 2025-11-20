@@ -1,0 +1,14 @@
+command = "renovate"
+platform = "github"
+token = "your_github_token_here"
+endpoint = "https://api.github.com"
+
+[[notifiers]]
+type = "stdout"
+
+# [[notifiers]]
+# type = "webhook"
+# url = "https://your-webhook-url.com"
+
+[extra_env]
+# RENOVATE_AUTODISCOVER = "true"
