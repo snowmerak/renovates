@@ -77,7 +77,7 @@ func (c *Config) Run(ctx context.Context, repo string) ([]byte, error) {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("failed to run renovate: %w\nstderr: %s", err, stderr.String())
+		return nil, fmt.Errorf("failed to run renovate: %w\nstdout: %s\nstderr: %s", err, stdout.String(), stderr.String())
 	}
 
 	return stdout.Bytes(), nil
