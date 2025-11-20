@@ -37,6 +37,8 @@ func main() {
 			notifiers = append(notifiers, notifier.NewStdoutNotifier())
 		case "webhook":
 			notifiers = append(notifiers, notifier.NewWebhookNotifier(n.URL))
+		case "teams":
+			notifiers = append(notifiers, notifier.NewTeamsNotifier(n.URL))
 		}
 	}
 
