@@ -132,4 +132,3 @@ url = "YOUR_WEBHOOK_URL"
 ## License
 
 AGPL-3.0
-
