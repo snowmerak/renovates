@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -152,19 +153,21 @@ func NewGitLabDiscoverer(cfg *renovate.Config) (*GitLabDiscoverer, error) {
 }
 
 func (d *GitLabDiscoverer) ListRepositories(ctx context.Context) ([]string, error) {
+	if d.cfg.Discovery.Owner != "" {
+		// Try to find group
+		group, resp, err := d.client.Groups.GetGroup(d.cfg.Discovery.Owner, nil, gitlab.WithContext(ctx))
+		if err == nil {
+			return d.listGroupProjects(ctx, group.ID)
+		}
+		if resp != nil && resp.StatusCode != http.StatusNotFound {
+			// Log error if needed
+		}
+	}
+
 	var allRepos []string
 	opt := &gitlab.ListProjectsOptions{
 		ListOptions: gitlab.ListOptions{PerPage: 100},
 		Simple:      gitlab.Ptr(true), // Get simple details to save bandwidth
-	}
-
-	if d.cfg.Discovery.Owner != "" {
-		// In GitLab, filtering by group/user is a bit different.
-		// We can search by group, or just list all projects the user has access to.
-		// For simplicity, let's assume we list all projects and filter.
-		// Or we can use ListGroupProjects if the owner is a group.
-		// But "Owner" in config is ambiguous.
-		// Let's try to use the search/filter options.
 	}
 
 	// If topics are provided, use them
@@ -190,6 +193,34 @@ func (d *GitLabDiscoverer) ListRepositories(ctx context.Context) ([]string, erro
 		opt.Page = resp.NextPage
 	}
 
+	return allRepos, nil
+}
+
+func (d *GitLabDiscoverer) listGroupProjects(ctx context.Context, groupID int) ([]string, error) {
+	var allRepos []string
+	opt := &gitlab.ListGroupProjectsOptions{
+		ListOptions:      gitlab.ListOptions{PerPage: 100},
+		Simple:           gitlab.Ptr(true),
+		IncludeSubGroups: gitlab.Ptr(true),
+	}
+
+	for {
+		projects, resp, err := d.client.Groups.ListGroupProjects(groupID, opt, gitlab.WithContext(ctx))
+		if err != nil {
+			return nil, err
+		}
+
+		for _, p := range projects {
+			if d.match(p) {
+				allRepos = append(allRepos, p.PathWithNamespace)
+			}
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
 	return allRepos, nil
 }
 
